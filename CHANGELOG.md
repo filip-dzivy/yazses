@@ -6,6 +6,28 @@ project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+### Performance — vocabulary correction no longer rescans the whole dictionary for every word
+
+With `[stt] vocab_correction` on, `postprocess.vocab_correct.correct()` runs on every utterance between the decoder and
+the keyboard. It tried every vocabulary term against every 1–4-word window and recomputed each term's phonetic key on
+every try, so its cost grew with utterance length × dictionary size; cProfile put 88 % of the time in `phonetic_key`
+(268 375 calls for one 200-word utterance against 500 terms). Terms are now indexed by phonetic key once per call — the
+key guard is an equality test, so only same-key terms can ever match — and a window whose length difference already
+exceeds the edit budget skips the Levenshtein DP. Output is unchanged: the new `paper/benchmark/bench_vocab_correct.py`
+prints the same output fingerprint before and after, and `tests/test_vocab_correct_index.py` checks the result against
+the previous implementation (fixed corpus, seeded random input, Hypothesis) and pins that key computations no longer
+scale with the dictionary. Median per-utterance latency from `paper/results/vocab-correct-baseline.json` (before) and
+`paper/results/vocab-correct.json` (after), one AMD Ryzen 7 5800H on Windows 11, Python 3.13 — machine-specific, so
+re-measure on yours:
+
+| vocabulary | words | before | after | speed-up |
+|---:|---:|---:|---:|---:|
+| 10 | 200 | 13.4 ms | 2.1 ms | 6.5× |
+| 100 | 200 | 111.2 ms | 2.6 ms | 42× |
+| 500 | 200 | 460.3 ms | 4.3 ms | 106× |
+| 2000 | 20 | 226.3 ms | 8.8 ms | 26× |
+| 2000 | 200 | 1993.8 ms | 15.0 ms | 133× |
+
 ## [2.43.2] - 2026-10-18
 
 ### Fixed — the gaze grounding resolver grounded a candidate with no extent (property-test counterexample)

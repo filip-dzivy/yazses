@@ -1,0 +1,92 @@
+{
+  "provenance": {
+    "timestamp": "2026-11-11T12:07:43Z",
+    "cpu_model": "AMD Ryzen 7 5800H with Radeon Graphics",
+    "logical_cpus": 16,
+    "ram_gb": 17.0,
+    "os": "Windows-11-10.0.26300-SP0",
+    "kernel": "11",
+    "python": "3.13.18",
+    "faster_whisper": "1.2.1",
+    "yazses": "2.43.2",
+    "numpy": "2.4.6",
+    "ctranslate2": "4.8.1",
+    "omp_num_threads": "unset",
+    "load_average_1m": -1.0,
+    "compute_type": "int8",
+    "device": "cpu",
+    "argv": "paper/benchmark/bench_vocab_correct.py",
+    "corpus": null
+  },
+  "bench": "vocab_correct",
+  "commit": "9afb8aa9",
+  "seed": 73,
+  "min_seconds_per_cell": 0.5,
+  "output_fingerprint": "d077d3ac7c82b162",
+  "rows": [
+    {
+      "vocab_size": 10,
+      "words": 20,
+      "runs": 2234,
+      "median_ms": 0.2204,
+      "p95_ms": 0.236,
+      "corrections": 2
+    },
+    {
+      "vocab_size": 10,
+      "words": 200,
+      "runs": 224,
+      "median_ms": 2.0548,
+      "p95_ms": 3.0884,
+      "corrections": 16
+    },
+    {
+      "vocab_size": 100,
+      "words": 20,
+      "runs": 1103,
+      "median_ms": 0.4296,
+      "p95_ms": 0.6258,
+      "corrections": 1
+    },
+    {
+      "vocab_size": 100,
+      "words": 200,
+      "runs": 184,
+      "median_ms": 2.6368,
+      "p95_ms": 3.1138,
+      "corrections": 15
+    },
+    {
+      "vocab_size": 500,
+      "words": 20,
+      "runs": 300,
+      "median_ms": 1.5492,
+      "p95_ms": 2.3425,
+      "corrections": 0
+    },
+    {
+      "vocab_size": 500,
+      "words": 200,
+      "runs": 105,
+      "median_ms": 4.3484,
+      "p95_ms": 6.5308,
+      "corrections": 18
+    },
+    {
+      "vocab_size": 2000,
+      "words": 20,
+      "runs": 59,
+      "median_ms": 8.8269,
+      "p95_ms": 10.1606,
+      "corrections": 4
+    },
+    {
+      "vocab_size": 2000,
+      "words": 200,
+      "runs": 34,
+      "median_ms": 15.0181,
+      "p95_ms": 19.5235,
+      "corrections": 21
+    }
+  ]
+}

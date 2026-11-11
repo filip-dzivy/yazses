@@ -143,30 +143,80 @@ def _without_possessive(token: str) -> str:
     return token
 
 
-def _is_close(heard: str, term: str, max_ratio: float) -> bool:
-    """Both guards: identical phonetic key AND a small enough edit distance."""
-    if len(heard.replace(" ", "")) < MIN_TOKEN_LENGTH:
-        return False
-    if phonetic_key(heard.replace(" ", "")) != phonetic_key(term.replace(" ", "")):
-        return False
+def _bare(word: str) -> str:
+    """Case-folded, with the spaces and hyphens a split or joined word differs by removed."""
+    return word.lower().replace(" ", "").replace("-", "")
+
+
+@dataclass(frozen=True)
+class _Term:
+    """One vocabulary term with everything about it that does not depend on the input."""
+
+    text: str
+    bare: str
+    ratio_scale: float
+
+
+def _index_terms(terms: list[str]) -> dict[str, list[_Term]]:
+    """Group *terms* by phonetic key, keeping their order within each group.
+
+    The phonetic-key guard is an *equality* test, so a term whose key differs
+    from the heard window's can never match. Looking the window's key up here
+    replaces a scan of the whole vocabulary — which recomputed every term's key
+    for every window of every utterance — with one dict lookup, and the few
+    terms it returns are tried in the same order the scan would have used, so
+    the first hit is the same term.
+    """
+    index: dict[str, list[_Term]] = {}
+    for term in terms:
+        key = phonetic_key(term.replace(" ", ""))
+        # The distance budget scales with how discriminative the phonetic key is.
+        #
+        # A long identical key is already strong evidence: "kubernetes" and "cooper
+        # netties" share the 6-symbol key `216532`, which almost nothing else does —
+        # yet they are 6 edits apart, because a homophone can be spelled wildly
+        # differently. Judging that by spelling distance alone rejects exactly the
+        # case this exists for. Short keys are the opposite: 2–3 symbols collide
+        # easily, so there the distance check is the only thing holding the line.
+        # (`phonetic_key` ignores non-letters, so this is the key of the bare term.)
+        scale = 1.75 if len(key) >= 5 else 1.0
+        index.setdefault(key, []).append(_Term(term, _bare(term), scale))
+    return index
+
+
+def _first_close(
+    heard: str, index: dict[str, list[_Term]], max_ratio: float,
+) -> str | None:
+    """The first indexed term *heard* is close to, or None.
+
+    Both guards: identical phonetic key AND a small enough edit distance.
+    """
+    squeezed = heard.replace(" ", "")
+    if len(squeezed) < MIN_TOKEN_LENGTH:
+        return None
+    candidates = index.get(phonetic_key(squeezed))
+    if not candidates:
+        return None
     # Compare space-stripped: a split word ("cooper netties") differs from the
     # term only by the split, and counting that space as an edit is exactly
     # backwards — the split IS the mis-hearing we are trying to undo.
-    bare_heard = heard.lower().replace(" ", "").replace("-", "")
-    bare_term = term.lower().replace(" ", "").replace("-", "")
+    bare_heard = _bare(heard)
+    for term in candidates:
+        # Same float operation order as ever, so `int()` truncates identically.
+        ratio = max_ratio * term.ratio_scale
+        budget = max(1, int(max(len(term.bare), len(bare_heard)) * ratio))
+        # The length difference is a lower bound on the edit distance, so a
+        # window that cannot fit the budget skips the quadratic DP entirely.
+        if abs(len(term.bare) - len(bare_heard)) > budget:
+            continue
+        if _distance(bare_heard, term.bare) <= budget:
+            return term.text
+    return None
 
-    # The distance budget scales with how discriminative the phonetic key is.
-    #
-    # A long identical key is already strong evidence: "kubernetes" and "cooper
-    # netties" share the 6-symbol key `216532`, which almost nothing else does —
-    # yet they are 6 edits apart, because a homophone can be spelled wildly
-    # differently. Judging that by spelling distance alone rejects exactly the
-    # case this exists for. Short keys are the opposite: 2–3 symbols collide
-    # easily, so there the distance check is the only thing holding the line.
-    key_length = len(phonetic_key(bare_term))
-    ratio = max_ratio * (1.75 if key_length >= 5 else 1.0)
-    budget = max(1, int(max(len(bare_term), len(bare_heard)) * ratio))
-    return _distance(bare_heard, bare_term) <= budget
+
+def _is_close(heard: str, term: str, max_ratio: float) -> bool:
+    """Both guards for a single *term*. Kept for callers that test one pair."""
+    return _first_close(heard, _index_terms([term]), max_ratio) is not None
 
 
 def correct(
@@ -194,6 +244,7 @@ def correct(
     # corrector over this repo's own docs, where it fired 891 times on the
     # lowercase command name.
     known = {t.lower() for t in terms}
+    index = _index_terms(terms)
 
     spans = [(m.start(), m.end(), m.group()) for m in _WORD_RE.finditer(text)]
     if not spans:
@@ -229,7 +280,7 @@ def correct(
             heard = text[spans[i][0]:spans[i + width - 1][1]]
             if heard.lower() in known:
                 break                      # already correct — leave it alone
-            hit = next((t for t in terms if _is_close(heard, t, max_distance_ratio)), None)
+            hit = _first_close(heard, index, max_distance_ratio)
             if hit is not None:
                 match_len, replacement = width, hit
                 break

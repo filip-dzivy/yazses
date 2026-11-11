@@ -100,6 +100,7 @@ Four rules for using these files, each learned the expensive way:
 | `streaming.json` | LocalAgreement streaming vs batch | `bench_streaming.py` |
 | `vad.json` | speech-detection / silence-rejection at the default gate | `bench_vad.py` |
 | `commands.json` | command-grammar accuracy and false-positive rate | `bench_commands.py` |
+| `vocab-correct*.json` | per-utterance latency of vocabulary correction across dictionary size × utterance length, with an output fingerprint — `vocab-correct-baseline.json` is the pre-index code, `vocab-correct.json` the current one | `bench_vocab_correct.py` |
 | `plausibility-*.json` | how often the attribution warning fires, and is right | `bench_plausibility.py` |
 | `diarization-*-der.json` | speaker-diarization DER per recording and over the corpus, at the profile's shipped `cluster_threshold` | `bench_diarization.py` |
 | `diarization-*-maxspk4.json` | the same corpus with the speaker count **pinned** to four — the cell that decided whether `--speakers` helps | `bench_diarization.py` |

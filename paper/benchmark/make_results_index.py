@@ -98,6 +98,10 @@ MEASURES = {
     "plausibility": "how often the implausible-attribution warning fires",
     "streaming": "partial-hypothesis latency and rewrite rate",
     "vad": "speech detection and silence rejection at the default threshold",
+    "vocab-correct": (
+        "per-utterance latency of vocabulary correction across dictionary size x "
+        "utterance length, with an output fingerprint for before/after equality"
+    ),
     "wer": "WER and RTF per engine and checkpoint",
 }
 

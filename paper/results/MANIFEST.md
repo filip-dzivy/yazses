@@ -63,6 +63,7 @@ in. The arguments are not decoration -- `bench_wer.py` writes one filename for
 | `plausibility-voxconverse-1.0.json` | how often the implausible-attribution warning fires | — | Intel Xeon Platinum 8573C (16 vCPU) | 2026-08-24T03:18:41Z | 2.29.0 |
 | `streaming.json` | partial-hypothesis latency and rewrite rate | — | 13th Gen Intel Core i7-1370P (20 vCPU) | 2026-08-23T22:40:38Z | 2.30.0 |
 | `vad.json` | speech detection and silence rejection at the default threshold | — | 13th Gen Intel Core i7-1370P (20 vCPU) | 2026-08-23T22:29:44Z | 2.30.0 |
+| `vocab-correct-baseline.json` | per-utterance latency of vocabulary correction across dictionary size x utterance length, with an output fingerprint for before/after equality | `paper/benchmark/bench_vocab_correct.py --name vocab-correct-baseline` | AMD Ryzen 7 5800H with Radeon Graphics (16 vCPU) | 2026-11-11T12:06:07Z | 2.43.2 |
 | `wer-test-other.json` | WER and RTF per engine and checkpoint | — | Intel Xeon Platinum 8573C (16 vCPU) | 2026-08-23T23:55:32Z | 2.29.0 |
 | `wer.json` | WER and RTF per engine and checkpoint | — | 13th Gen Intel Core i7-1370P (20 vCPU) | 2026-07-30T21:17:57Z | 2.12.0.dev4 |
 

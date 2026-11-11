@@ -56,6 +56,7 @@ uv run python paper/benchmark/make_figures.py
 | `bench_wer.py` | WER (%) + RTF across engines and checkpoints | `stt.factory.build_engine` (so faster-whisper, Parakeet and Moonshine all decode through the shipping path), whisper-normalizer, jiwer |
 | `bench_latency.py` | decode P50/P95, cold-start, RSS, pure-stage timings | STT engine, `audio.vad_calibrated`, `postprocess.cleaner`, `stt.filters.disfluency`, `commands.grammar` |
 | `bench_commands.py` | grammar action-accuracy, false-positive rate, per-call ms | `commands.grammar.classify` + existing fixtures |
+| `bench_vocab_correct.py` | per-utterance latency of vocabulary correction across dictionary size × utterance length, an output fingerprint for before/after equality, and `--profile` (cProfile); stdlib only, synthetic input | `postprocess.vocab_correct.correct` |
 | `bench_vad.py` | speech-detection / silence-rejection at the default threshold | `audio.vad_calibrated.is_silent_calibrated` |
 | `bench_diarization.py` | diarization DER / miss / false-alarm / confusion + speaker-count error | `recimport.diarizer.SherpaDiarizer`, a corpus from `scripts/gen-meeting-corpus.py` |
 | `bench_beam.py` | WER + RTF across `beam_size`, with per-utterance error counts | `stt.factory.build_engine`, `bench_wer._bootstrap_wer_ci`, jiwer |
